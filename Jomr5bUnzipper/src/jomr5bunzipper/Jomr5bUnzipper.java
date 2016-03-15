@@ -10,6 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import ui.UIStage;
 
 /**
  *
@@ -20,13 +21,9 @@ public class Jomr5bUnzipper extends Application
     
     @Override
     public void start(Stage stage) throws Exception
-    {
-        Parent root = FXMLLoader.load(getClass().getResource("Home.fxml"));
-        
-        Scene scene = new Scene(root);
-        
-        stage.setScene(scene);
-        stage.show();
+    {   
+        UIStage uiStage = new UIStage(stage);
+        uiStage.displayScene(uiStage.loadScene("Home", getClass().getResource("Home.fxml")));
     }
 
     /**

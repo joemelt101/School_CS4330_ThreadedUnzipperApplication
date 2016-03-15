@@ -11,14 +11,15 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
+import ui.UIScene;
+import ui.UIStage;
 
 /**
  *
  * @author Jared
  */
-public class HomeController implements Initializable
+public class HomeController extends UIScene
 {
-    
     @FXML
     private Label label;
     
@@ -27,12 +28,6 @@ public class HomeController implements Initializable
     {
         System.out.println("You clicked me!");
         label.setText("Hello World!");
-    }
-    
-    @Override
-    public void initialize(URL url, ResourceBundle rb)
-    {
-        // TODO
-    }    
+    }   
     
 }
