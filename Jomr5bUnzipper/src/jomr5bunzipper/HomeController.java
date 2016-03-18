@@ -50,7 +50,9 @@ public class HomeController extends UIScene
     private ProgressBar progressBar;
     
     @FXML
-    private ListView processedFileList;
+    private ListView processedFileList; 
+    
+    private ObservableList filesUnzipped = FXCollections.observableArrayList();
     
     @FXML
     private void browseFileClicked(ActionEvent event)
@@ -87,27 +89,26 @@ public class HomeController extends UIScene
     {
         if (worker == null || worker.isAlive() == false)
         {
+            //clear out old files and progress
+            filesUnzipped.clear();
+            progressBar.setProgress(0);
+            
+            String forwardSlashFolder = pathToFolder.getText().replace('\\', '/') + "/";
+            
             //start thread
             UnzipperRunnable runner = new UnzipperRunnable(pathToFile.getText(), pathToFolder.getText(), 
-            (String message, float progress) -> 
+            (String message, float progress, String fileName, Boolean newFile) -> 
                 {
+                    if (newFile)
+                    {
+                        filesUnzipped.add(0, forwardSlashFolder + fileName);
+                    }
+                    
                     this.status.setText(message);
                     this.progressBar.setProgress(progress);
                 });
             
-            //add files
-            List list = runner.getFilesInZip();
-            ArrayList<String> al = new ArrayList<>();
-            
-            for (int i = 0; i < list.size(); ++i)
-            {
-                String filename = ((FileHeader)list.get(i)).getFileName();
-                al.add(filename);
-            }
-            
-            ObservableList oList = FXCollections.observableArrayList(al);
-
-            this.processedFileList.setItems(oList);
+            this.processedFileList.setItems(filesUnzipped);
             worker = new Thread(runner);
             worker.start();
         }

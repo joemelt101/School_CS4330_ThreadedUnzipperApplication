@@ -13,5 +13,5 @@ package jomr5bunzipper;
 @FunctionalInterface
 public interface UnzipperProgress
 {
-    public void progress(String status, float percentDone);
+    public void progress(String status, float percentDone, String fileName, Boolean newFile);
 }

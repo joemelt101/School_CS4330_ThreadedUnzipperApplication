@@ -23,6 +23,7 @@ public class Jomr5bUnzipper extends Application
     public void start(Stage stage) throws Exception
     {   
         UIStage uiStage = new UIStage(stage);
+        stage.setWidth(1000);
         uiStage.displayScene(uiStage.loadScene("Home", getClass().getResource("Home.fxml")));
     }
 

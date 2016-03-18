@@ -5,10 +5,12 @@
  */
 package jomr5bunzipper;
 
+import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Platform;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.UnzipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
 
@@ -23,11 +25,11 @@ public class UnzipperRunnable implements Runnable
     private ZipFile file;
     private UnzipperProgress progressHandler;
     
-    private void notify(String status, float percentDone)
+    private void notify(String status, float percentDone, String fileName, Boolean newFile)
     {
         Platform.runLater(() -> 
         {
-            progressHandler.progress(status, percentDone);
+            progressHandler.progress(status, percentDone, fileName, newFile);
         });
     }
     
@@ -62,45 +64,51 @@ public class UnzipperRunnable implements Runnable
             System.err.println("Failed to open file: " + ex.getMessage());
         }
         
-        this.notify("Not Started", 0);
-        
-        file.setRunInThread(true);
+        this.notify("Not Started", 0, "", false);
     }
     
     @Override
     public void run()
     {
+        ArrayList<FileHeader> headers;
+        
         try
         {
-            file.extractAll(destination);
+            headers = new ArrayList(file.getFileHeaders());
         }
         catch (ZipException ex)
         {
-            System.err.println("Failed to extract files from zip: " + ex.getMessage());
+            System.err.println("Failed to get File Headers");
+            return;
         }
         
-        ProgressMonitor mon = file.getProgressMonitor();
+        int numFiles = headers.size();
         
-        while (mon.getState() == ProgressMonitor.STATE_BUSY)
+        for (int fileIndex = 0; fileIndex < numFiles; ++fileIndex)
         {
-            //notify UI of updates
-            this.notify("Extracting", mon.getPercentDone());
+            float percentDone = (float)fileIndex / numFiles;
             
-            //sleep as to not over notify
+            //notify UI of updates
+            this.notify("Extracting", percentDone, headers.get(fileIndex).getFileName(), true);
+
             try
             {
-                Thread.sleep(50);
+                file.extractFile(headers.get(fileIndex), destination);
             }
-            catch (InterruptedException ex)
+            catch (ZipException ex)
             {
-                //stop
-                this.notify("Interrupted", mon.getPercentDone());
-                mon.cancelAllTasks();
-                return; //get out of loop
+                System.err.println("Failed to extract files from zip: " + ex.getMessage());
+            }
+            
+            //Check if interrupted and cancel tasks if so
+            if (Thread.interrupted())
+            {
+                this.notify("Interrupted", percentDone, "", false);
+                return;
             }
         }
         
         //completed
-        this.notify("Finished", 100);
+        this.notify("Finished", 1, "", false);
     }
 }
